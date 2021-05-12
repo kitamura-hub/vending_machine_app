@@ -4,6 +4,7 @@
 
 // 0~4以外の数値はfalseにするための条件式
 #define BETWEEN_0_TO_4 mode_num != 0 && mode_num != 1 && mode_num != 2 && mode_num != 3 && mode_num != 4
+#define P_SIZE 6  // 商品データの要素数
 
 // 総釣銭(釣銭で返却できる釣銭データ。各種枚数で管理)
 typedef struct {
@@ -24,6 +25,7 @@ typedef struct {
 
 // プロトタイプ宣言
 int mode(void);
+void show_product(product p_data[P_SIZE]);
 
 int main(void) {
   int total_sales = 0;  // 総売上
@@ -31,17 +33,14 @@ int main(void) {
   // 総釣銭の初期化
   total_change t_chnage_data = { 0, 0, 0, 0, 0 };
   // 商品データの代入(初期化)
-  product product_data[6] = {
+  product product_data[P_SIZE] = {
     { 1, "水      ", 120, 3 }, { 2, "お茶    ", 130, 5 }, { 3, "紅茶    ", 110, 7 },
     { 4, "オレンジ", 100, 9 }, { 5, "コーラ  ", 110, 3 }, { 6, "ファンタ", 140, 5 }
   };
 
 
   // 商品の一覧表示
-  // for (int i=0; i<6; i++) {
-  //   printf("【%d】%s: %d円 | 残り: %d\n", product_data[i].product_id, product_data[i].product_name, product_data[i].price, product_data[i].stock);
-  // }
-  // printf("\n");
+  show_product(product_data);
 
   // モード選択
   mode_number = mode();
@@ -59,6 +58,13 @@ int main(void) {
   }
 
   return 0;
+}
+
+void show_product(product p_data[P_SIZE]) {
+  for (int i=0; i<6; i++) {
+    printf("【%d】%s: %d円 | 残り: %d\n", p_data[i].product_id, p_data[i].product_name, p_data[i].price, p_data[i].stock);
+  }
+  printf("\n");
 }
 
 int mode() {
