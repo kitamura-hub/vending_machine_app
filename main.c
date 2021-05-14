@@ -7,15 +7,6 @@
 #define BETWEEN_1_TO_6 inp != 1 && inp != 2 && inp != 3 && inp != 4 && inp != 5 && inp != 6  // 商品番号
 #define P_SIZE 6  // 商品データの要素数
 
-// 総釣銭(釣銭で返却できる釣銭データ。各種枚数で管理)
-typedef struct {
-  int yen1000;
-  int yen500;
-  int yen100;
-  int yen50;
-  int yen10;
-} total_change;
-
 // 商品データ
 typedef struct {
   const int product_id;
@@ -28,35 +19,42 @@ typedef struct {
 int mode(void);
 void show_product(product p_data[P_SIZE]);
 void payment(int *input);
-void purchase_product(int *input_num, product *p_data);
+void purchase_product(int *input_num, int *input_money, int *change, product *p_data);
+void settle(int *total_sales, int *input_money, int *change, int *t_change);
 
 int main(void) {
   int total_sales = 0;  // 総売上
   int mode_number = 0;  // モードハンドリングの数値
   int input_money = 0;  // 入金金額
   int input_p_num = 0;  // 入力商品番号
-  total_change t_change_data = { 3, 5, 7, 9, 3 };  // 総釣銭
+  int change = 0;  // 釣銭(整数値)
+  int total_change[] = { 10, 11, 12, 13, 14 };  // 総釣銭 - 0: 1000円, 1: 500円, 2: 100円, 3: 50円, 4: 10円
   product product_data[P_SIZE] = {  // 商品データの代入(初期化)
     { 1, "水      ", 120, 0 }, { 2, "お茶    ", 130, 3 }, { 3, "紅茶    ", 110, 5 },
     { 4, "オレンジ", 100, 7 }, { 5, "コーラ  ", 110, 9 }, { 6, "ファンタ", 140, 3 }
   };
 
-  // 商品の一覧表示
-  show_product(product_data);
+  show_product(product_data);  // 商品の一覧表示
 
   // モード選択
   mode_number = mode();
   if (mode_number == 1) {
     puts("購入者モード");
     payment(&input_money);  // 入金処理
-    purchase_product(&input_p_num, product_data);  // 購入処理
-
+    purchase_product(&input_p_num, &input_money, &change, product_data);  // 購入処理
+    settle(&total_sales, &input_money, &change, total_change);  // 精算処理
   } else if (mode_number == 2) {
     puts("補充者モード");
   } else if (mode_number == 3) {
     puts("売上確認モード");
+    printf("総売上: %d\n", total_sales);
   } else if (mode_number == 4) {
     puts("釣銭確認モード");
+    // printf("1000円札: %d枚\n", total_change[0]);
+    // printf("500円玉 : %d枚\n", total_change[1]);
+    // printf("100円玉 : %d枚\n", total_change[2]);
+    // printf("50円玉  : %d枚\n", total_change[3]);
+    // printf("10円玉  : %d枚\n", total_change[4]);
   } else if (mode_number == 0) {
     puts("システムを終了します");
     exit(1);
@@ -100,7 +98,7 @@ void payment(int *input) {
   *input = inp;  // input_moneyの値を更新
 }
 
-void purchase_product(int *input_num, product *p_data) {
+void purchase_product(int *input_num, int *input_money, int *change, product *p_data) {
   int inp = 0;  // ユーザーの入力を受け取る変数
   int i;
   do {
@@ -115,13 +113,43 @@ void purchase_product(int *input_num, product *p_data) {
           printf("%sは現在、在庫がありません。商品を選び直してください\n", p_data[i].product_name);
         } else {
           printf("%sを購入しました！\n", p_data[i].product_name);
-          printf("\n");
           break;  // 商品の購入成功でループから抜ける
         }
       }
     }
 
   } while(BETWEEN_1_TO_6 || p_data[i].stock <= 0);
+
+  // 釣銭の返却(釣銭 = 入金金額 - 商品金額;)
+  *change = *input_money - p_data[i].price;
+  printf("お釣り: %d円\n", *change);
+  printf("\n");
+
   p_data[i].stock--;  // ユーザーの購入に従い、在庫数をデクリメントする
   *input_num = inp;  // input_p_numの値を更新
+}
+
+void settle(int *total_sales, int *input_money, int *change, int *t_change) {
+  int b1k = 0; int c500 = 0; int c100 = 0; int c50 = 0; int c10 = 0;
+
+  // 総売上の更新
+  *total_sales += *input_money - *change;
+
+  // 紙幣と硬貨の枚数算出
+  b1k = *change / 1000;
+  *change = *change % 1000;
+  c500 = *change / 500;
+  *change = *change % 500;
+  c100 = *change / 100;
+  *change = *change % 100;
+  c50 = *change / 50;
+  *change = *change % 50;
+  c10 = *change / 10;
+
+  // 総釣銭の更新
+  t_change[0] -= b1k;  // 1000円
+  t_change[1] -= c500;  // 500円
+  t_change[2] -= c100;  // 100円
+  t_change[3] -= c50;  // 50円
+  t_change[4] -= c10;  // 10円
 }
