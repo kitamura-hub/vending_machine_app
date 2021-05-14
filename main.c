@@ -18,6 +18,7 @@ typedef struct {
 // プロトタイプ宣言
 int mode(void);
 void show_product(product p_data[P_SIZE]);
+void show_t_change(int *t_change);
 void payment(int *input);
 void purchase_product(int *input_num, int *input_money, int *change, product *p_data);
 void settle(int *total_sales, int *input_money, int *change, int *t_change);
@@ -50,11 +51,7 @@ int main(void) {
     printf("総売上: %d\n", total_sales);
   } else if (mode_number == 4) {
     puts("釣銭確認モード");
-    // printf("1000円札: %d枚\n", total_change[0]);
-    // printf("500円玉 : %d枚\n", total_change[1]);
-    // printf("100円玉 : %d枚\n", total_change[2]);
-    // printf("50円玉  : %d枚\n", total_change[3]);
-    // printf("10円玉  : %d枚\n", total_change[4]);
+    show_t_change(total_change);
   } else if (mode_number == 0) {
     puts("システムを終了します");
     exit(1);
@@ -68,6 +65,14 @@ void show_product(product p_data[P_SIZE]) {
     printf("【%d】%s: %d円 | 残り: %d\n", p_data[i].product_id, p_data[i].product_name, p_data[i].price, p_data[i].stock);
   }
   printf("\n");
+}
+
+void show_t_change(int *t_change) {
+  printf("1000円札: %d枚\n", t_change[0]);
+  printf("500円玉 : %d枚\n", t_change[1]);
+  printf("100円玉 : %d枚\n", t_change[2]);
+  printf("50円玉  : %d枚\n", t_change[3]);
+  printf("10円玉  : %d枚\n", t_change[4]);
 }
 
 int mode() {
@@ -85,7 +90,7 @@ int mode() {
 void payment(int *input) {
   int inp = 0;  // ユーザーの入力を受け取る変数
   int y_n;  // y or n
-  puts("投入金額の上限は1990円まで");
+  puts("投入金額の上限は1990円");
 
   do {
     printf("投入金額を入力: ");
