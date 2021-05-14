@@ -2,8 +2,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-// 0~4以外の数値はfalseにするための条件式
-#define BETWEEN_0_TO_4 mode_num != 0 && mode_num != 1 && mode_num != 2 && mode_num != 3 && mode_num != 4
+// 羅列されてる数値以外の数値をtureにするための条件式
+#define BETWEEN_0_TO_4 mode_num != 0 && mode_num != 1 && mode_num != 2 && mode_num != 3 && mode_num != 4  // モード番号
+#define BETWEEN_1_TO_6 inp != 1 && inp != 2 && inp != 3 && inp != 4 && inp != 5 && inp != 6  // 商品番号
 #define P_SIZE 6  // 商品データの要素数
 
 // 総釣銭(釣銭で返却できる釣銭データ。各種枚数で管理)
@@ -27,15 +28,17 @@ typedef struct {
 int mode(void);
 void show_product(product p_data[P_SIZE]);
 void payment(int *input);
+void purchase_product(int *input_num, product *p_data);
 
 int main(void) {
   int total_sales = 0;  // 総売上
   int mode_number = 0;  // モードハンドリングの数値
   int input_money = 0;  // 入金金額
+  int input_p_num = 0;  // 入力商品番号
   total_change t_change_data = { 3, 5, 7, 9, 3 };  // 総釣銭
   product product_data[P_SIZE] = {  // 商品データの代入(初期化)
-    { 1, "水      ", 120, 3 }, { 2, "お茶    ", 130, 5 }, { 3, "紅茶    ", 110, 7 },
-    { 4, "オレンジ", 100, 9 }, { 5, "コーラ  ", 110, 3 }, { 6, "ファンタ", 140, 5 }
+    { 1, "水      ", 120, 0 }, { 2, "お茶    ", 130, 3 }, { 3, "紅茶    ", 110, 5 },
+    { 4, "オレンジ", 100, 7 }, { 5, "コーラ  ", 110, 9 }, { 6, "ファンタ", 140, 3 }
   };
 
   // 商品の一覧表示
@@ -46,8 +49,7 @@ int main(void) {
   if (mode_number == 1) {
     puts("購入者モード");
     payment(&input_money);  // 入金処理
-
-    // ②購入処理〜精算処理
+    purchase_product(&input_p_num, product_data);  // 購入処理
 
   } else if (mode_number == 2) {
     puts("補充者モード");
@@ -92,8 +94,34 @@ void payment(int *input) {
     scanf("%d", &inp);
     printf("投入金額は%d円です。こちらの金額で本当によろしいですか？(1=yes or 0=no): ", inp);
     scanf("%d", &y_n);
-    if (inp > 1990 && y_n == 1) puts("投入金額の上限(1990円)を超えています");  // inpが1990円を超過　かつ　y_nが1のときに出力する
-  } while(y_n == 0 || inp > 1990);  // どちらかの条件が満たしていればループが行われる。両条件がfalseのときにループから抜ける
-
+    if (inp > 1990 && y_n == 1) puts("投入金額の上限(1990円)を超えています");
+  } while(y_n == 0 || inp > 1990);
+  printf("\n");
   *input = inp;  // input_moneyの値を更新
+}
+
+void purchase_product(int *input_num, product *p_data) {
+  int inp = 0;  // ユーザーの入力を受け取る変数
+  int i;
+  do {
+    printf("商品番号を入力してください(1 ~ 6): ");
+    scanf("%d", &inp);
+    if (BETWEEN_1_TO_6) puts("有効な商品番号を入力してください！！");
+
+    for (i=0; i<P_SIZE; i++) {
+      if (p_data[i].product_id == inp) {  // 選択した商品番号と商品データの商品番号をマッチ
+        // 在庫判定
+        if (p_data[i].stock <= 0) {
+          printf("%sは現在、在庫がありません。商品を選び直してください\n", p_data[i].product_name);
+        } else {
+          printf("%sを購入しました！\n", p_data[i].product_name);
+          printf("\n");
+          break;  // 商品の購入成功でループから抜ける
+        }
+      }
+    }
+
+  } while(BETWEEN_1_TO_6 || p_data[i].stock <= 0);
+  p_data[i].stock--;  // ユーザーの購入に従い、在庫数をデクリメントする
+  *input_num = inp;  // input_p_numの値を更新
 }
