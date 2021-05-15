@@ -16,14 +16,16 @@ typedef struct {
 } product;
 
 // プロトタイプ宣言
-int mode(void);
-void show_product(product p_data[P_SIZE]);
-void show_t_change(int *t_change);
-void payment(int *input);
-void purchase_product(int *input_num, int *input_money, int *change, product *p_data);
-void settle(int *total_sales, int *input_money, int *change, int *t_change);
+int mode(void);  // モード選択
+void show_product(product p_data[P_SIZE]);  // 商品一覧表示
+void show_t_change(int *t_change);  // 釣銭一覧表示
+void payment(int *input);  // 入金
+void purchase_product(int *input_num, int *input_money, int *change, product *p_data);  // 購入
+void settle(int *total_sales, int *input_money, int *change, int *t_change);  // 精算
+void refill_product(product *p_data);  // 商品補充
 
 int main(void) {
+  int replay = 0;
   int total_sales = 0;  // 総売上
   int mode_number = 0;  // モードハンドリングの数値
   int input_money = 0;  // 入金金額
@@ -35,27 +37,27 @@ int main(void) {
     { 4, "オレンジ", 100, 7 }, { 5, "コーラ  ", 110, 9 }, { 6, "ファンタ", 140, 3 }
   };
 
-  show_product(product_data);  // 商品の一覧表示
+  do {
+    show_product(product_data);  // 商品一覧表示
+    mode_number = mode();  // モード選択
+    if (mode_number == 1) {
+      payment(&input_money);  // 入金
+      purchase_product(&input_p_num, &input_money, &change, product_data);  // 購入
+      settle(&total_sales, &input_money, &change, total_change);  // 精算
+    } else if (mode_number == 2) {
+      refill_product(product_data);  // 補充
+    } else if (mode_number == 3) {
+      printf("総売上: %d\n", total_sales);  // 総売上表示
+    } else if (mode_number == 4) {
+      show_t_change(total_change);  // 釣銭一覧表示
+    } else if (mode_number == 0) {
+      puts("システムを終了します");
+      exit(1);
+    }
 
-  // モード選択
-  mode_number = mode();
-  if (mode_number == 1) {
-    puts("購入者モード");
-    payment(&input_money);  // 入金処理
-    purchase_product(&input_p_num, &input_money, &change, product_data);  // 購入処理
-    settle(&total_sales, &input_money, &change, total_change);  // 精算処理
-  } else if (mode_number == 2) {
-    puts("補充者モード");
-  } else if (mode_number == 3) {
-    puts("売上確認モード");
-    printf("総売上: %d\n", total_sales);
-  } else if (mode_number == 4) {
-    puts("釣銭確認モード");
-    show_t_change(total_change);
-  } else if (mode_number == 0) {
-    puts("システムを終了します");
-    exit(1);
-  }
+    printf("もう一度シュミレーションを行いますか？(1=yes or 0=no): ");
+    scanf("%d", &replay);
+  } while(replay != 0);
 
   return 0;
 }
@@ -157,4 +159,30 @@ void settle(int *total_sales, int *input_money, int *change, int *t_change) {
   t_change[2] -= c100;  // 100円
   t_change[3] -= c50;  // 50円
   t_change[4] -= c10;  // 10円
+}
+
+void refill_product(product *p_data) {
+  int inp = 0;  // 補充する商品番号
+  int inp_add_num = 0;  // 補充数
+  int replay = 0;
+
+  do {
+    printf("商品番号を入力してください(1 ~ 6): ");
+    scanf("%d", &inp);
+    if (BETWEEN_1_TO_6) {
+      puts("有効な商品番号を入力してください！！");
+    } else {
+      printf("補充数を入力してください: ");
+      scanf("%d", &inp_add_num);
+
+      for (int i=0; i<P_SIZE; i++) {
+        if (p_data[i].product_id == inp) {  // マッチ
+          p_data[i].stock += inp_add_num;  // 商品補充
+        }
+      }
+
+      printf("他の商品も補充しますか？(1=yes or 0=no): ");
+      scanf("%d", &replay);
+    }
+  } while(BETWEEN_1_TO_6 || replay != 0);
 }
